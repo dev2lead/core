@@ -24,11 +24,7 @@ class UserTest extends TestCase
     {
         $this->prepareDatabase([
             'users' => [
-                $this->adminUser(),
                 $this->normalUser(),
-            ],
-            'group_permission' => [
-                ['permission' => 'viewUserList', 'group_id' => 3]
             ],
             'settings' => [
                 ['key' => 'display_name_driver', 'value' => 'custom'],

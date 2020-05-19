@@ -35,11 +35,9 @@ class ApiControllerTest extends TestCase
     {
         $this->prepareDatabase([
             'users' => [
-                $this->adminUser(),
                 $this->normalUser()
             ],
             'groups' => [
-                $this->adminGroup(),
                 $this->memberGroup()
             ],
             'discussions' => [
