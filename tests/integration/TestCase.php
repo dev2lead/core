@@ -15,6 +15,8 @@ use Flarum\Foundation\InstalledSite;
 use Flarum\Foundation\Paths;
 use Illuminate\Database\ConnectionInterface;
 use Laminas\Diactoros\ServerRequest;
+use PDO;
+use PDOException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -27,7 +29,25 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     {
         parent::tearDown();
 
-        $this->database()->rollBack();
+        $connection = $this->database;
+
+        $connection->rollBack();
+
+        // Eloquent uses PHP's PDO system. A PDO connection is only closed
+        // once the PDO object is garbage collected. In this case though,
+        // it's stored somewhere in the Laravel layer, so the connection
+        // remains open. This causes connections to stack up, and eventually
+        // we max out MYSQL's concurrent connection limit and get an error.
+        // So, we must kill the connection directly through SQL.
+        try {
+            $connection->getPdo()->query('KILL CONNECTION_ID()');
+        } catch (PDOException $e) {
+            // We expect the 70100 error code to be thrown, as we are
+            // killing the current connection.
+            if ($e->getCode() !== '70100') {
+                throw $e;
+            }
+        }
     }
 
     /**
